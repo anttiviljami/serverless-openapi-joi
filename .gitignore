@@ -1,0 +1,8 @@
+# build
+*.js
+*.js.map
+*.d.ts
+
+# npm
+node_modules
+npm-debug.log*
