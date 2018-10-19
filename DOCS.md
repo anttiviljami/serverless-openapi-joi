@@ -1,4 +1,4 @@
-# Documentation
+# Serverless OpenAPI Joi Plugin Documentation
 
 ## Route object
 
