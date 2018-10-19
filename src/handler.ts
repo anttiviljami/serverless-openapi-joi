@@ -1,17 +1,48 @@
 import _ from 'lodash';
 import Boom from 'boom';
-import Joi, { SchemaLike} from 'joi';
+import Joi, { SchemaLike } from 'joi';
 import joi2json from 'joi-to-json-schema';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 
 const OPENAPI_VERSION = '3.0.0';
 
-export interface HandlerConstructorOpts {
-  routes: Route[];
-  baseurl: string;
+export interface OpenAPIInfo {
   title: string;
   description?: string;
-  version?: string;
+  version: string;
+  termsOfService?: string;
+  license?: {
+    name: string;
+    url?: string;
+  };
+  contact?: {
+    name?: string;
+    url?: string;
+    email?: string;
+  };
+}
+
+export interface OpenAPIServer {
+  url: string;
+  description?: string;
+}
+
+export interface OpenAPIExternalDocs {
+  url: string;
+  description?: string;
+}
+
+export interface OpenAPITag {
+  name: string;
+  description?: string;
+  externalDocs?: OpenAPIExternalDocs;
+}
+
+export interface HandlerConstructorOpts {
+  routes: Route[];
+  info: OpenAPIInfo;
+  servers?: OpenAPIServer[];
+  externalDocs?: OpenAPIExternalDocs;
   swaggerEndpoint?: string;
 }
 
@@ -35,22 +66,17 @@ export interface HandlerResponse {
   };
 }
 
-export interface RouteTag {
-  name: string;
-  description: string;
-}
-
 export interface Route {
   method: string;
   path: string;
   operationId?: string;
   summary?: string;
   description?: string;
-  tags?: Array<RouteTag | string>;
+  tags?: Array<OpenAPITag | string>;
   validation?: {
-    headers?: { [name: string]: SchemaLike }
-    pathParameters?: { [name: string]: SchemaLike }
-    queryStringParameters?: { [name: string]: SchemaLike; }
+    headers?: { [name: string]: SchemaLike };
+    pathParameters?: { [name: string]: SchemaLike };
+    queryStringParameters?: { [name: string]: SchemaLike };
     payload?: SchemaLike;
   };
   responses?: {
@@ -64,24 +90,22 @@ export interface Route {
 
 export default class OpenAPIHandler {
   private routes: Route[];
-  private baseurl: string;
-  private title: string;
-  private description: string;
-  private version: string;
+  private info: OpenAPIInfo;
+  private servers: OpenAPIServer[];
+  private externalDocs: OpenAPIExternalDocs;
   private swaggerEndpoint: string;
 
   constructor(opts: HandlerConstructorOpts) {
     this.routes = opts.routes;
-    this.baseurl = opts.baseurl;
-    this.title = opts.title;
-    this.baseurl = opts.baseurl;
-    this.version = opts.version;
+    this.info = opts.info;
+    this.servers = opts.servers;
+    this.externalDocs = opts.externalDocs;
     this.swaggerEndpoint = _.isUndefined(opts.swaggerEndpoint) ? '/swagger.json' : opts.swaggerEndpoint;
   }
 
   public async handler(event: Partial<APIGatewayProxyEvent>): Promise<HandlerResponse> {
     const { path } = event;
-  
+
     // special endpoint to serve swagger.json
     if (this.swaggerEndpoint && path.match(new RegExp(`^${this.swaggerEndpoint}$`))) {
       return {
@@ -92,11 +116,11 @@ export default class OpenAPIHandler {
         },
       };
     }
-  
+
     // route using pseudo-hapi routes
     return this.route(event);
   }
-  
+
   public openAPIDefinition() {
     const schemas: any[] = [];
     const requestBodies: any[] = [];
@@ -104,20 +128,22 @@ export default class OpenAPIHandler {
     const paths = _.chain(this.routes)
       .map((path) => this.routeToPathDef(path, schemas, requestBodies))
       .groupBy('path') // group by paths
-      .mapValues((methods) => _.chain(methods)
-        .keyBy('method') // group by methods
-        .mapValues((method) => _.omit(method, ['method', 'path'])) // omit strip method property
-        .value())
+      .mapValues((methods) =>
+        _.chain(methods)
+          .keyBy('method') // group by methods
+          .mapValues((method) => _.omit(method, ['method', 'path'])) // omit strip method property
+          .value(),
+      )
       .value();
     const tags = _.chain(this.routes)
       .flatMap('tags')
-      .map((tag) => typeof tag === 'string' ? { name: tag } : tag)
+      .map((tag) => (typeof tag === 'string' ? { name: tag } : tag))
       .sortBy('description')
       .uniqBy('name')
       .value();
 
     const securitySchemes = {
-      'ApiKey': {
+      ApiKey: {
         type: 'apiKey',
         name: 'x-api-key',
         in: 'header',
@@ -127,17 +153,12 @@ export default class OpenAPIHandler {
       .keys()
       .map((scheme: string) => ({ [scheme]: [] }))
       .value();
-  
+
     return {
       openapi: OPENAPI_VERSION,
-      info: {
-        title: this.title,
-        description: this.description || '',
-        version: this.version || '1.0.0',
-      },
-      servers: [{
-        url: this.baseurl,
-      }],
+      info: this.info,
+      externalDocs: this.externalDocs,
+      servers: this.servers,
       security,
       tags,
       paths,
@@ -154,15 +175,17 @@ export default class OpenAPIHandler {
       },
     };
   }
-  
+
   // adds definitions from path validation to schemas array and returns the path definition itself
   private routeToPathDef(route: Route, schemas: any[], requestBodies: any[]) {
     const { path, method, summary, description, validation } = route;
     const operationId = route.operationId ? route.operationId : route.handler.name;
 
-    const responses = route.responses ? route.responses : {
-      200: { description: 'Success' }, // default response
-    };
+    const responses = route.responses
+      ? route.responses
+      : {
+          200: { description: 'Success' }, // default response
+        };
 
     const tags = _.chain(route.tags)
       .map((tag) => _.get(tag, 'name', tag))
@@ -188,7 +211,7 @@ export default class OpenAPIHandler {
           });
         });
       }
-  
+
       if (validation.pathParameters) {
         _.mapValues(validation.pathParameters, (joi: Joi.SchemaLike, name: string) => {
           const ref = this.createSchema(this.nameToRef(name, `${operationId}Path`), joi, schemas);
@@ -204,7 +227,7 @@ export default class OpenAPIHandler {
           });
         });
       }
-  
+
       if (validation.queryStringParameters) {
         _.mapValues(validation.queryStringParameters, (joi: Joi.SchemaLike, name: string) => {
           const ref = this.createSchema(this.nameToRef(name, `${operationId}Query`), joi, schemas);
@@ -221,7 +244,7 @@ export default class OpenAPIHandler {
           });
         });
       }
-  
+
       if (validation.payload) {
         const joi = validation.payload;
         const payloadRef = `${this.nameToRef(operationId)}Payload`;
@@ -241,7 +264,7 @@ export default class OpenAPIHandler {
         requestBody = { $ref: `#/components/requestBodies/${payloadRef}` };
       }
     }
-  
+
     return {
       path,
       method: method.toLowerCase(),
@@ -254,7 +277,7 @@ export default class OpenAPIHandler {
       requestBody,
     };
   }
-  
+
   // converts a joi schema to OpenAPI compatible JSON schema definition
   private joiToOpenApiSchema(joi: Joi.SchemaLike) {
     return joi2json(joi, (schema) => _.omit(schema, ['patterns', 'examples']));
@@ -274,7 +297,7 @@ export default class OpenAPIHandler {
       return schema;
     }
   }
-  
+
   // convert a name to a standard reference
   private nameToRef(name: string, context: string = '') {
     const nameStandardised = _.chain(name)
@@ -287,27 +310,25 @@ export default class OpenAPIHandler {
   // dank version of hapi's routing + joi validation
   private async route(event: Partial<APIGatewayProxyEvent>): Promise<HandlerResponse> {
     const { httpMethod, path, pathParameters, queryStringParameters, body, headers } = event;
-  
+
     // sort routes by "specificity" i.e. just use path length 🙈
     // @TODO: maybe count slashes in path instead ?
     const sortedRoutes = this.routes.sort((b, a) => a.path.length - b.path.length);
-  
+
     // match first route
     const matchedRoute = _.find(sortedRoutes, (route) => {
       if (route.method !== httpMethod) {
         return false;
       }
-      const pathPattern = route.path
-        .replace(/\{.*\}/g, '(.+)')
-        .replace(/\//g, '\\/');
+      const pathPattern = route.path.replace(/\{.*\}/g, '(.+)').replace(/\//g, '\\/');
       return path.match(new RegExp(`^${pathPattern}`, 'g'));
     });
     if (!matchedRoute) {
       throw Boom.notFound('Route not found');
     }
-  
+
     const { handler, validation } = matchedRoute as Route;
-  
+
     // try to extract json payload from body
     let payload;
     try {
@@ -315,32 +336,35 @@ export default class OpenAPIHandler {
     } catch {
       // suppress any json parsing errors
     }
-  
+
     // maybe validate payload, pathParameters, queryStringParameters, headers
     if (validation) {
-      const input = _.omitBy({
-        headers,
-        payload,
-        pathParameters,
-        queryStringParameters,
-      }, _.isNil);
-  
+      const input = _.omitBy(
+        {
+          headers,
+          payload,
+          pathParameters,
+          queryStringParameters,
+        },
+        _.isNil,
+      );
+
       const validationDefaults = {
         queryStringParameters: Joi.object().unknown(),
       };
-  
+
       const validationResult = Joi.validate(input, {
         ...validationDefaults,
         ...validation,
         headers: Joi.object(headers || {}).unknown(), // headers are always partially defined
       });
-  
+
       // throw a 400 error if there are any validation errors
       if (validationResult.error) {
         throw Boom.badRequest(validationResult.error.message);
       }
     }
-  
+
     // pass event to handler enriched with parsed payload
     const res = await handler({ ...event, payload });
     return {

@@ -4,7 +4,7 @@
 [![npm version](https://badge.fury.io/js/serverless-openapi-joi.svg)](https://badge.fury.io/js/serverless-openapi-joi)
 [![License](http://img.shields.io/:license-mit-blue.svg)](http://anttiviljami.mit-license.org)
 
-Serverless plugin for creating OpenAPI specifications with Joi validation.
+Serverless plugin for creating [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification/blob/3.0.0/versions/3.0.0.md) specifications with Joi validation.
 
 This plugin allows you to define input validation for your serverless API endpoints and generates OpenAPI definitions
 from validation rules, which can be either saved somewhere or served directly as an endpoint in the API itself.
@@ -75,16 +75,19 @@ In your Serverless API handler:
 import OpenAPIHandler from 'serverless-openapi-joi/handler';
 
 const openapi = new OpenAPIHandler({
-  title: 'Example Pet API',
-  description: 'Example CRUD API with Serverless OpenAPI Joi plugin',
-  version: '0.1.0',
-  baseurl: 'http://localhost:8000', // ServiceEndpoint for your lambda
-  swaggerEndpoint: '/swagger.json', // endpoint for serving OpenAPI definition as json
+  info: {
+    title: 'Example Pet API',
+    description: 'Example CRUD API with Serverless OpenAPI Joi plugin',
+    version: '0.1.0',
+  },
+  servers: [{ url: 'http://localhost:9000' }], // ServiceEndpoint for your lambda
+  swaggerEndpoint: '/swagger.json', // endpoint for serving OpenAPI definition as json (default: /swagger.json)
   routes, // defined below
 });
 
 export async function handler(event) {
-  return openapi.handler(event);  // you should catch any errors from your handler
+  return openapi.handler(event);
+  // NOTE: you should catch any errors from your handler
   // serverless-openapi-joi throws validation errors as Boom errors
 }
 ```
