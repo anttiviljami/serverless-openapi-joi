@@ -33,7 +33,7 @@ const openapi = new OpenAPIHandler({
   title: 'Example CRUD Pet API',
   description: 'Example CRUD API to demonstrate auto-generated openapi docs with Joi',
   version: '1.0.0',
-  baseurl: process.env.BASEURL,
+  baseurl: 'http://localhost',
   routes: [
     {
       method: 'GET',
