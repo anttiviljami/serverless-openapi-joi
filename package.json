@@ -2,7 +2,7 @@
   "name": "serverless-openapi-joi",
   "description": "Serverless plugin for creating OpenAPI specifications with Joi validation",
   "author": "Viljami Kuosmanen <viljami@avoinsorsa.fi>",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "license": "MIT",
   "main": "index.js",
   "types": "index.d.ts",
