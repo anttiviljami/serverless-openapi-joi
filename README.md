@@ -1,5 +1,8 @@
 # Serverless OpenAPI Joi Plugin
-[![Build Status](https://travis-ci.com/anttiviljami/serverless-openapi-joi.svg?branch=master)](https://travis-ci.com/anttiviljami/serverless-openapi-joi) [![License](http://img.shields.io/:license-mit-blue.svg)](http://anttiviljami.mit-license.org)
+[![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
+[![Build Status](https://travis-ci.com/anttiviljami/serverless-openapi-joi.svg?branch=master)](https://travis-ci.com/anttiviljami/serverless-openapi-joi)
+[![npm version](https://badge.fury.io/js/serverless-openapi-joi.svg)](https://badge.fury.io/js/serverless-openapi-joi)
+[![License](http://img.shields.io/:license-mit-blue.svg)](http://anttiviljami.mit-license.org)
 
 Serverless plugin for creating OpenAPI specifications with Joi validation.
 
