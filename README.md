@@ -27,10 +27,6 @@ validation errors.
 
 Heavily inspired by [hapi-swagger](https://github.com/glennjones/hapi-swagger)
 
-## Documentation
-
-View the documentation here: [DOCS.md](blob/master/DOCS.md)
-
 ## Example
 
 ```
@@ -221,3 +217,7 @@ OpenAPI v3 docs are automatically generated for API and served at `/swagger.json
 These can be viewed using tools like Swagger UI
 
 ![Swagger UI docs](https://raw.githubusercontent.com/anttiviljami/serverless-openapi-joi/master/swaggerui.png)
+
+## Documentation
+
+View the documentation here: [DOCS.md](DOCS.md)
