@@ -5,6 +5,10 @@ Serverless plugin for creating OpenAPI specifications with Joi validation.
 
 ## Quick Start
 
+```
+npm install --save serverless-openapi-joi
+```
+
 In your serverless.yml:
 
 ```yaml
@@ -47,11 +51,11 @@ In your Serverless API handler:
 import OpenAPIHandler from 'serverless-openapi-joi/handler';
 
 const openapi = new OpenAPIHandler({
-  title: 'Example CRUD Pet API',
-  description: 'Example CRUD API to demonstrate auto-generated openapi docs with Joi',
+  title: 'Example Pet API',
+  description: 'Example CRUD API with Serverless OpenAPI Joi plugin',
   version: '0.1.0',
   baseurl: process.env.BASEURL,
-  routes,
+  routes, // defined below
 });
 
 export async function handler(event) {
@@ -96,7 +100,7 @@ const routes = [
   {
     method: 'GET',
     path: '/pets',
-    handler: getPets,
+    handler: getPets, // standard async serverless handler function
     summary: 'List pets',
     description: 'Returns all pets in database',
     tags: ['pets'],
