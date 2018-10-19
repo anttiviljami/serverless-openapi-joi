@@ -3,7 +3,7 @@
 
 Serverless plugin for creating OpenAPI specifications with Joi validation.
 
-## Quick Start
+## Getting started
 
 ```
 npm install --save serverless-openapi-joi
@@ -17,7 +17,7 @@ plugins:
 
 functions:
   api:
-    handler: index.handler
+    handler: handler.api
     events:
       - http:
           path: swagger.json
@@ -54,7 +54,8 @@ const openapi = new OpenAPIHandler({
   title: 'Example Pet API',
   description: 'Example CRUD API with Serverless OpenAPI Joi plugin',
   version: '0.1.0',
-  baseurl: process.env.BASEURL,
+  baseurl: 'http://localhost:8000', // ServiceEndpoint for your lambda
+  swaggerEndpoint: '/swagger.json', // endpoint for serving OpenAPI definition as json
   routes, // defined below
 });
 
@@ -93,7 +94,7 @@ const validation = {
 };
 ```
 
-Routes define API operations using validation rules for request body, path parameters, query parameters and headers.
+Routes define API operations using validation rules for request body, path parameters, query parameters and headers:
 
 ```typescript
 const routes = [
@@ -183,8 +184,10 @@ const routes = [
 ];
 ```
 
-OpenAPI v3 docs including JSON schema models are automatically generated for API, which can be viewed with tools like
-Swagger UI. You can use either the generated static Swagger UI documentation page, or the `/swagger.json` endpoint.
+OpenAPI v3 docs are automatically generated for API and served at `/swagger.json`.
+
+These can be viewed using tools like Swagger UI
 
 ![Swagger UI docs](swaggerui.png)
 
+See full example project boilerplate here: [anttiviljami/serverless-openapi-joi-boilerplate](https://github.com/anttiviljami/serverless-openapi-joi-boilerplate)
