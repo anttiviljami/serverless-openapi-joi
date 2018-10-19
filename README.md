@@ -210,5 +210,5 @@ OpenAPI v3 docs are automatically generated for API and served at `/swagger.json
 
 These can be viewed using tools like Swagger UI
 
-![Swagger UI docs](swaggerui.png)
+![Swagger UI docs](https://raw.githubusercontent.com/anttiviljami/serverless-openapi-joi/master/swaggerui.png)
 
