@@ -47,6 +47,16 @@ describe('OpenAPI', () => {
           url: 'https://production.api.com',
         },
       ],
+      securitySchemes: {
+        ApiKey: {
+          type: 'apiKey',
+          name: 'x-api-key',
+          in: 'header',
+        },
+      },
+      security: [
+        { ApiKey: [] },
+      ],
       routes,
     });
     const definition = await openapi.getDefinition();

@@ -47,14 +47,13 @@ export interface Route {
 }
 
 export interface HandlerConstructorOpts extends OpenAPIBuilderOpts {
-  routes: Route[];
   swaggerEndpoint?: string;
 }
 
 export default class OpenAPIHandler {
+  public openapi: OpenAPIBuilder;
+  public swaggerEndpoint: string;
   private routes: Route[];
-  private openapi: OpenAPIBuilder;
-  private swaggerEndpoint: string;
 
   constructor(opts: HandlerConstructorOpts) {
     this.routes = opts.routes;

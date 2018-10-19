@@ -3,8 +3,6 @@ import Joi from 'joi';
 import joi2json from 'joi-to-json-schema';
 import { Route } from './handler';
 
-const OPENAPI_VERSION = '3.0.0';
-
 export interface OpenAPIInfo {
   title: string;
   description?: string;
@@ -37,32 +35,94 @@ export interface OpenAPITag {
   externalDocs?: OpenAPIExternalDocs;
 }
 
+export interface OpenAPISecurityRequirement {
+  [scheme: string]: string[];
+}
+
+export interface OpenAPISecuritySchemes {
+  [scheme: string]: {
+    type: string;
+    name: string;
+    in: string;
+  };
+}
+
+export interface OpenAPIComponents {
+  schemas?: any;
+  requestBodies?: any;
+  securitySchemes?: OpenAPISecuritySchemes;
+}
+
+export interface OpenAPIPaths {
+  [path: string]: {
+    [method: string]: {
+      operationId: string,
+      summary?: string,
+      description?: string,
+      tags: string[],
+      responses: {
+        [responseCode: string]: {
+          description: string;
+          content?: any;
+        };
+      };
+      parameters: any[],
+      requestBody: any,
+    };
+  };
+}
+
 export interface OpenAPIBuilderOpts {
   routes: Route[];
   info: OpenAPIInfo;
   servers?: OpenAPIServer[];
   externalDocs?: OpenAPIExternalDocs;
+  securitySchemes?: OpenAPISecuritySchemes;
+  security?: OpenAPISecurityRequirement[];
 }
 
 export default class OpenAPIBuilder {
-  private routes: Route[];
-  private info: OpenAPIInfo;
-  private servers: OpenAPIServer[];
-  private externalDocs: OpenAPIExternalDocs;
+  public OPENAPI_VERSION: string = '3.0.0.';
+  public routes: Route[];
+  public info: OpenAPIInfo;
+  public servers: OpenAPIServer[];
+  public externalDocs: OpenAPIExternalDocs;
+  public securitySchemes: OpenAPISecuritySchemes;
+  public security: OpenAPISecurityRequirement[];
+
+  private schemas: any[];
+  private requestBodies: any[];
 
   constructor(opts: OpenAPIBuilderOpts) {
     this.routes = opts.routes;
     this.info = opts.info;
     this.servers = opts.servers;
     this.externalDocs = opts.externalDocs;
+
+    // default to serverless x-api-key header scheme
+    this.securitySchemes = opts.securitySchemes || {
+      ApiKey: {
+        type: 'apiKey',
+        name: 'x-api-key',
+        in: 'header',
+      },
+    };
+
+    // default to a list of all securitySchemes given
+    this.security = opts.security || _.chain(this.securitySchemes)
+      .keys()
+      .map((scheme: string) => ({ [scheme]: [] }))
+      .value();
   }
 
   public getDefinition() {
-    const schemas: any[] = [];
-    const requestBodies: any[] = [];
+    // reset schemas and requestBodies arrays
+    this.schemas = [];
+    this.requestBodies = [];
 
+    // build paths and gather schemas + requestBodies
     const paths = _.chain(this.routes)
-      .map((path) => this.routeToPathDef(path, schemas, requestBodies))
+      .map((path) => this.routeToPathDef(path))
       .groupBy('path') // group by paths
       .mapValues((methods) =>
         _.chain(methods)
@@ -71,6 +131,8 @@ export default class OpenAPIBuilder {
           .value(),
       )
       .value();
+
+    // gather all tags from paths
     const tags = _.chain(this.routes)
       .flatMap('tags')
       .map((tag) => (typeof tag === 'string' ? { name: tag } : tag))
@@ -78,42 +140,33 @@ export default class OpenAPIBuilder {
       .uniqBy('name')
       .value();
 
-    const securitySchemes = {
-      ApiKey: {
-        type: 'apiKey',
-        name: 'x-api-key',
-        in: 'header',
-      },
-    };
-    const security = _.chain(securitySchemes)
-      .keys()
-      .map((scheme: string) => ({ [scheme]: [] }))
-      .value();
+    // build the components object
+    const components: OpenAPIComponents = _.omitBy({
+      schemas: _.chain(this.schemas)
+        .keyBy('ref')
+        .mapValues((def) => _.omit(def, 'ref'))
+        .value(),
+      requestBodies: _.chain(this.requestBodies)
+        .keyBy('ref')
+        .mapValues((def) => _.omit(def, 'ref'))
+        .value(),
+      securitySchemes: this.securitySchemes,
+    }, _.isNil);
 
-    return {
-      openapi: OPENAPI_VERSION,
+    return _.omitBy({
+      openapi: this.OPENAPI_VERSION,
       info: this.info,
       externalDocs: this.externalDocs,
       servers: this.servers,
-      security,
+      security: this.security,
       tags,
       paths,
-      components: {
-        securitySchemes,
-        requestBodies: _.chain(requestBodies)
-          .keyBy('ref')
-          .mapValues((def) => _.omit(def, 'ref')) // omit ref property
-          .value(),
-        schemas: _.chain(schemas)
-          .keyBy('ref')
-          .mapValues((def) => _.omit(def, 'ref')) // omit ref property
-          .value(),
-      },
-    };
+      components,
+    }, _.isNil);
   }
 
   // adds definitions from path validation to schemas array and returns the path definition itself
-  private routeToPathDef(route: Route, schemas: any[], requestBodies: any[]) {
+  private routeToPathDef(route: Route) {
     const { path, method, summary, description, validation } = route;
     const operationId = route.operationId ? route.operationId : route.handler.name;
 
@@ -133,7 +186,7 @@ export default class OpenAPIBuilder {
     if (validation) {
       if (validation.headers) {
         _.mapValues(validation.headers, (joi: Joi.SchemaLike, name: string) => {
-          const ref = this.createSchema(this.nameToRef(name, `${operationId}Header`), joi, schemas);
+          const ref = this.createSchema(this.nameToRef(name, `${operationId}Header`), joi, this.schemas);
           const joiDescription = _.get(joi, '_description') || `Request header: ${name}`;
           const joiRequired = _.get(joi, '_flags.presence', 'optional') === 'required';
           parameters.push({
@@ -150,7 +203,7 @@ export default class OpenAPIBuilder {
 
       if (validation.pathParameters) {
         _.mapValues(validation.pathParameters, (joi: Joi.SchemaLike, name: string) => {
-          const ref = this.createSchema(this.nameToRef(name, `${operationId}Path`), joi, schemas);
+          const ref = this.createSchema(this.nameToRef(name, `${operationId}Path`), joi, this.schemas);
           const joiDescription = _.get(joi, '_description') || `Path parameter: ${name}`;
           parameters.push({
             name,
@@ -166,7 +219,7 @@ export default class OpenAPIBuilder {
 
       if (validation.queryStringParameters) {
         _.mapValues(validation.queryStringParameters, (joi: Joi.SchemaLike, name: string) => {
-          const ref = this.createSchema(this.nameToRef(name, `${operationId}Query`), joi, schemas);
+          const ref = this.createSchema(this.nameToRef(name, `${operationId}Query`), joi, this.schemas);
           const joiDescription = _.get(joi, '_description') || `Query parameter: ${name}`;
           const joiRequired = _.get(joi, '_flags.presence', 'optional') === 'required';
           parameters.push({
@@ -184,9 +237,9 @@ export default class OpenAPIBuilder {
       if (validation.payload) {
         const joi = validation.payload;
         const payloadRef = `${this.nameToRef(operationId)}Payload`;
-        const schemaRef = this.createSchema(payloadRef, joi, schemas);
+        const schemaRef = this.createSchema(payloadRef, joi, this.schemas);
         const joiDescription = _.get(joi, '_description') || `Request payload: ${operationId}`;
-        requestBodies.push({
+        this.requestBodies.push({
           ref: payloadRef,
           description: joiDescription,
           content: {

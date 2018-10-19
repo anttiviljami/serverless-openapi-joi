@@ -12,7 +12,8 @@ const validation = {
     name: Joi.string()
       .description('Name of the pet')
       .example('Garfield')
-      .label('PetName'),
+      .label('PetName')
+      .required(),
   }).label('PetPayload'),
 
   limit: Joi.number()
