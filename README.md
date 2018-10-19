@@ -55,7 +55,7 @@ const openapi = new OpenAPIHandler({
 });
 
 export async function handler(event) {
-  return openapi.routeEvent(event);
+  return openapi.handler(event);
 }
 ```
 
