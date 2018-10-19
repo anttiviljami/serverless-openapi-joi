@@ -2,6 +2,7 @@
 *.js
 *.js.map
 *.d.ts
+!src/types/*.d.ts
 
 # npm
 node_modules
