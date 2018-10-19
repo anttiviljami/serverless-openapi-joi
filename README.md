@@ -1,7 +1,28 @@
 # Serverless OpenAPI Joi Plugin
-[![License](http://img.shields.io/:license-mit-blue.svg)](http://anttiviljami.mit-license.org)
+[![Build Status](https://travis-ci.com/anttiviljami/serverless-openapi-joi.svg?branch=master)](https://travis-ci.com/anttiviljami/serverless-openapi-joi) [![License](http://img.shields.io/:license-mit-blue.svg)](http://anttiviljami.mit-license.org)
 
 Serverless plugin for creating OpenAPI specifications with Joi validation.
+
+This plugin allows you to define input validation for your serverless API endpoints and generates OpenAPI definitions
+from validation rules, which can be either saved somewhere or served directly as an endpoint in the API itself.
+
+See full example project boilerplate here: [anttiviljami/serverless-openapi-joi-boilerplate](https://github.com/anttiviljami/serverless-openapi-joi-boilerplate)
+
+## Philosophy
+
+As developers, we are lazy when it comes to writing documentation.
+
+Even with nice modern tools like the OpenAPI standard (previously known as Swagger) that allow us to auto-generate
+API docs and clients from definition files, those files tend to be tideous to write and out-of-date.
+
+The best way to make sure API documentation stays up-to-date is to generate it from API code itself and actively use the
+generated API definition in our development workflow.
+
+With **serverless-openapi-joi**, OpenAPI specification is generated as a by-product of defining Joi validation rules to
+our API endpoints. As a bonus, we get nice machine- and human-readable [Boomified](https://github.com/hapijs/boom)
+validation errors.
+
+Heavily inspired by [hapi-swagger](https://github.com/glennjones/hapi-swagger)
 
 ## Getting started
 
@@ -60,7 +81,8 @@ const openapi = new OpenAPIHandler({
 });
 
 export async function handler(event) {
-  return openapi.handler(event);
+  return openapi.handler(event);  // you should catch any errors from your handler
+  // serverless-openapi-joi throws validation errors as Boom errors
 }
 ```
 
@@ -101,7 +123,7 @@ const routes = [
   {
     method: 'GET',
     path: '/pets',
-    handler: getPets, // standard async serverless handler function
+    handler: getPets, // event is passed through to a standard serverless handler function after validation
     summary: 'List pets',
     description: 'Returns all pets in database',
     tags: ['pets'],
@@ -190,4 +212,3 @@ These can be viewed using tools like Swagger UI
 
 ![Swagger UI docs](swaggerui.png)
 
-See full example project boilerplate here: [anttiviljami/serverless-openapi-joi-boilerplate](https://github.com/anttiviljami/serverless-openapi-joi-boilerplate)
