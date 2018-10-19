@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Handler handler throws a 404 not found with unknown route 1`] = `"Route not found. Hint: Route definition missing for GET /unknown-route ?"`;
+
+exports[`Handler handler throws a validation error with invalid path param 1`] = `"child \\"pathParameters\\" fails because [child \\"PetId\\" fails because [\\"PetId\\" must be a number]]"`;
+
+exports[`Handler handler throws a validation error with invalid payload 1`] = `"child \\"PetPayload\\" fails because [\\"incorrect\\" is not allowed]"`;
+
+exports[`Handler handler throws a validation error with invalid query param 1`] = `"child \\"queryStringParameters\\" fails because [child \\"QueryLimit\\" fails because [\\"QueryLimit\\" must be a positive number]]"`;

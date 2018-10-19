@@ -114,9 +114,9 @@ export default class OpenAPIHandler {
     const { handler, validation } = matchedRoute as Route;
 
     // try to extract json payload from body
-    let payload;
+    const payload: { payload?: any } = {};
     try {
-      payload = JSON.parse(body);
+      payload.payload = JSON.parse(body);
     } catch {
       // suppress any json parsing errors
     }
@@ -126,9 +126,9 @@ export default class OpenAPIHandler {
       const input = _.omitBy(
         {
           headers,
-          payload,
           pathParameters,
           queryStringParameters,
+          ...payload,
         },
         _.isNil,
       );
@@ -150,7 +150,7 @@ export default class OpenAPIHandler {
     }
 
     // pass event to handler enriched with parsed payload
-    const res = await handler({ ...event, payload }, context);
+    const res = await handler({ ...event, ...payload }, context);
     return {
       statusCode: 200,
       ...res,
