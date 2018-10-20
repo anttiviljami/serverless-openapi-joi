@@ -224,4 +224,4 @@ These can be viewed using tools like Swagger UI
 
 ## Documentation
 
-View the documentation here: [DOCS.md](DOCS.md)
+View the documentation here: [DOCS.md](https://github.com/anttiviljami/serverless-openapi-joi/blob/master/DOCS.md)
