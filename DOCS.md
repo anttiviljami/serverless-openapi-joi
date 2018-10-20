@@ -293,4 +293,15 @@ const apiBuilder = new OpenAPIBuilder({
 
 ### Method: `getSpecification()`
 
-The `getSpecification` method returns the openapi specification as an object
+The `getSpecification` method returns the openapi specification as an object.
+
+Example code for generating openapi spec and writing to file:
+
+```typescript
+import fs from 'fs';
+import OpenAPIBuilder from 'serverless-openapi-joi/openapi'; // ES6 syntax
+
+const openapi = new OpenAPIBuilder({/* opts here */});
+const spec = openapi.getSpecification();
+fs.writeFileSync('swagger.json', JSON.stringify(spec));
+```
