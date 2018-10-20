@@ -179,7 +179,7 @@ const apiHandler = new OpenAPIHandler({
 });
 ```
 
-### Method: `handler(event: APIGatewayProxyEvent, context?: Context): Promise<HandlerResponse>`
+### Method: `handler(event: APIGatewayProxyEvent, context?: Context)`
 
 The `handler` method is an async lambda handler method. It either returns the passed through handler response or throws
 a [Boom error](https://github.com/hapijs/boom).
@@ -193,6 +193,7 @@ Example implementation of a Serverless handler using `OpenAPIHandler.handler()`:
 ```typescript
 import OpenAPIHandler from 'serverless-openapi-joi/handler';
 import Boom from 'boom';
+
 export async function handler(event) {
   const apiHandler = new OpenAPIHandler({/* opts here */});
   return apiHandler.handler(event)
