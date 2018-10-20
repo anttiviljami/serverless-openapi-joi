@@ -43,7 +43,7 @@ Example Route object in array with validations:
 import Joi from 'joi';
 import { Route } from 'serverless-openapi-joi/handler';
 
-const routes: Route[] = [
+const routes = [
   {
     method: 'PATCH',
     path: '/pets/{id}',
