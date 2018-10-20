@@ -114,7 +114,7 @@ Some ideas for the plugin:
 
 The `OpenAPIHandler` class is the easiest way to interact with serverless-openapi-joi. The class handles routing,
 validation and provides an endpoint with your OpenAPI definitions. It is the default export when importing
-`serverless-openapi-joi/handler`. 
+`serverless-openapi-joi/handler`.
 
 ```typescript
 import OpenAPIHandler from 'serverless-openapi-joi/handler'; // ES6 module syntax

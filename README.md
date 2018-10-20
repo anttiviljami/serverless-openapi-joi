@@ -76,7 +76,7 @@ In the handler:
 ```typescript
 import OpenAPIHandler from 'serverless-openapi-joi/handler'; // ES6 syntax
 // or
-const OpenAPIHandler = require('serverless-openapi-joi/handler').default; // CommomJS syntax
+const OpenAPIHandler = require('serverless-openapi-joi/handler').default; // CommonJS syntax
 ```
 
 ```typescript
@@ -128,7 +128,7 @@ const validation = {
 };
 ```
 
-Routes define API operations using validation rules ([see docs](https://github.com/anttiviljami/serverless-openapi-joi/blob/master/DOCS.md#route-object)): 
+Routes define API operations using validation rules ([see docs](https://github.com/anttiviljami/serverless-openapi-joi/blob/master/DOCS.md#route-object)):
 
 ```typescript
 const routes = [
@@ -218,7 +218,7 @@ const routes = [
 ];
 ```
 
-The OpenAPI specification for your API gets automatically generated and served at `/swagger.json`! 
+The OpenAPI specification for your API gets automatically generated and served at `/swagger.json`!
 
 You can also access the specification object anywhere programmatically using the
 [`getSpecification()` method](https://github.com/anttiviljami/serverless-openapi-joi/blob/master/DOCS.md#method-getspecification-1).

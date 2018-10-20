@@ -2,7 +2,7 @@
   "name": "serverless-openapi-joi",
   "description": "Serverless plugin for creating OpenAPI specifications with Joi validation",
   "author": "Viljami Kuosmanen <viljami@avoinsorsa.fi>",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "license": "MIT",
   "homepage": "https://github.com/anttiviljami/serverless-openapi-joi",
   "bugs": {
