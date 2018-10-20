@@ -84,8 +84,8 @@ const openapi = new OpenAPIHandler({
     description: 'Example CRUD API with Serverless OpenAPI Joi plugin',
     version: '0.1.0',
   },
-  servers: [{ url: 'http://localhost:9000' }], // ServiceEndpoint for your lambda
-  swaggerEndpoint: '/swagger.json', // endpoint for serving OpenAPI definition as json (default: /swagger.json)
+  servers: [{ url: 'https://5oipict212.execute-api.eu-west-1.amazonaws.com/dev' }],
+  swaggerEndpoint: '/swagger.json',
   routes, // defined below
 });
 

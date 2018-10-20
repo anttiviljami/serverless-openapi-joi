@@ -141,8 +141,8 @@ Example:
 const apiHandler = new OpenAPIHandler({
   routes,
   info: {
-    title: 'Example CRUD Pet API',
-    description: 'Example CRUD API to demonstrate auto-generated openapi docs with Joi',
+    title: 'Example API',
+    description: 'Example CRUD API with Serverless OpenAPI Joi plugin',
     version: '1.0.0',
     termsOfService: 'https://github.com/anttiviljami/serverless-openapi-joi',
     license: {
@@ -255,8 +255,8 @@ Example:
 const apiBuilder = new OpenAPIBuilder({
   routes,
   info: {
-    title: 'Example CRUD Pet API',
-    description: 'Example CRUD API to demonstrate auto-generated openapi docs with Joi',
+    title: 'Example API',
+    description: 'Example CRUD API with Serverless OpenAPI Joi plugin',
     version: '1.0.0',
     termsOfService: 'https://github.com/anttiviljami/serverless-openapi-joi',
     license: {
