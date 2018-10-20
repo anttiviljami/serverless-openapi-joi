@@ -2,7 +2,7 @@ import _ from 'lodash';
 import Boom from 'boom';
 import Joi, { SchemaLike } from 'joi';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
-import OpenAPIBuilder, { OpenAPITag, OpenAPIBuilderOpts } from './openapi';
+import OpenAPIBuilder, { OpenAPITag, OpenAPISecurityRequirement, OpenAPIBuilderOpts } from './openapi';
 
 export interface HandlerEvent extends APIGatewayProxyEvent {
   payload: any;
@@ -43,6 +43,7 @@ export interface Route {
       content?: any;
     };
   };
+  security?: OpenAPISecurityRequirement[];
   handler: (event?: Partial<HandlerEvent>, context?: Context) => Promise<HandlerResponse>;
 }
 

@@ -72,8 +72,12 @@ functions:
 In Serverless handler:
 
 ```typescript
-import OpenAPIHandler from 'serverless-openapi-joi/handler';
+import OpenAPIHandler from 'serverless-openapi-joi/handler'; // ES6 syntax
+// or
+const OpenAPIHandler = require('serverless-openapi-joi/handler').default; // CommomJS syntax
+```
 
+```typescript
 const openapi = new OpenAPIHandler({
   info: {
     title: 'Example Pet API',

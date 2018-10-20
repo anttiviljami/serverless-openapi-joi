@@ -1,10 +1,43 @@
 # Serverless OpenAPI Joi Plugin Documentation
 
+<!-- toc -->
+
+- [Route object](#route-object)
+- [Class: `OpenApiJoiPlugin`](#class-openapijoiplugin)
+- [Class: `OpenAPIHandler`](#class-openapihandler)
+  - [Constructor: `new OpenAPIHandler(opts: HandlerConstructorOpts)`](#constructor-new-openapihandleropts-handlerconstructoropts)
+  - [Method: `handler(event: APIGatewayProxyEvent, context?: Context): Promise`](#method-handlerevent-apigatewayproxyevent-context-context-promisehandlerresponse)
+  - [Method: `getSpecification()`](#method-getspecification)
+  - [Property: `openapi: OpenApiBuilder`](#property-openapi-openapibuilder)
+  - [Property: `swaggerEndpoint: string`](#property-swaggerendpoint-string)
+- [Class: OpenAPIBuilder](#class-openapibuilder)
+  - [Constructor: `new OpenAPIBuilder(opts: OpenAPIBuilderOpts)`](#constructor-new-openapibuilderopts-openapibuilderopts)
+  - [Method: `getSpecification()`](#method-getspecification)
+
+<!-- tocstop -->
+
 ## Route object
 
-The Route object defines an API endpoint.
+The Route object defines an API endpoint and Joi validations for headers, path parameters, query string parameters and
+json request payload. It has the following properties:
 
-Example:
+- `method: string` (required) - The HTTP method of this operation (get/post/put/patch/delete)
+- `path: string` (required) - The relative path of this endpoint from API root
+- `handler: async function` (required) - The lambda handler function for this endpoint. Gets called if validation passes.
+- `operationId: string` (optional) - Unique OpenAPI [operationId](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#operation-object)
+for this endpoint. Defaults to the handler function name
+- `summary: string` (optional) - A short summary of what the operation does
+- `description: string` (optional) - A verbose explanation of the operation behavior. CommonMark syntax MAY be used for rich text representation.
+- `tags` (optional) - Array of tags as strings or [OpenAPI Tag Objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#tag-object)
+- `validation` (optional) - Joi validation rules for this endpoint:
+  - `headers` (optional) - Map of known headers and Joi definitions for them
+  - `pathParameters` (optional) - Map of required path parameters and Joi definitions for them
+  - `queryStringParameters` (optional) - Map of known query string parameters and Joi definitions for them
+  - `payload` (optional) - Joi validation for JSON payload
+- `responses` (optional) - [OpenAPI Responses Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#responsesObject)
+- `security` (optional) - Array of [OpenAPI Security Requirement Objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#securityRequirementObject) for this operation
+
+Example Route object in array with validations:
 
 ```typescript
 import Joi from 'joi';
@@ -15,7 +48,7 @@ const routes: Route[] = [
     method: 'PATCH',
     path: '/pets/{id}',
     operationId: 'updatePetById',
-    handler: async (event) => ({ statusCode: 200 }),
+    handler: async (event, context) => ({ statusCode: 200 }),
     summary: 'Update pet',
     description: 'Update an existing pet in the database',
     tags: ['pets'],
@@ -55,53 +88,83 @@ const routes: Route[] = [
       404: { description: 'Pet not found' },
     },
   },
-]
+];
 ```
 
-@TODO: stub.
+## Class: `OpenApiJoiPlugin`
 
-## Class: OpenAPIHandler
+`OpenApiJoiPlugin` is a Serverless plugin class. It is the main export when requiring `serverless-openapi-joi`.
 
-The `OpenAPIHandler` class is the easiest way to interact with serverless-openapi-joi. It is the default export when
-requiring `serverless-openapi-joi/handler`.
+Serverless loads the plugin by adding it to the plugins section of your `serverless.yml` file.
+
+```yaml
+plugins:
+  - serverless-openapi-joi
+```
+
+The plugin part of serverless-openapi-joi currently doesn't do much.
+
+Some ideas for the plugin:
+- Parse routes directly from `serverless.yml` function http events to avoid duplicate endpoint definitions
+- Add `serverless openapi:generate` command which prints the openapi definitions either as json or yaml
+- Add `serverless openapi:swaggerui` command which generates a static Swagger UI documentation site
+- Add option to deploy the Swagger UI site as an S3 website
+
+## Class: `OpenAPIHandler`
+
+The `OpenAPIHandler` class is the easiest way to interact with serverless-openapi-joi. The class handles routing,
+validation and provides an endpoint with your OpenAPI definitions. It is the default export when importing
+`serverless-openapi-joi/handler`. 
 
 ```typescript
-import OpenAPIHandler from 'serverless-openapi-joi/handler';
+import OpenAPIHandler from 'serverless-openapi-joi/handler'; // ES6 module syntax
+// or
+const OpenAPIHandler = require('serverless-openapi-joi/handler').default; // CommonJS syntax
 ```
 
-The class handles routing, validation and provides an endpoint with your OpenAPI definitions.
+### Constructor: `new OpenAPIHandler(opts: HandlerConstructorOpts)`
 
-### Constructor
+Creates a new `OpenAPIHandler` instance using the options provided.
+
+- `opts: HandlerConstructorOpts` - Constructor options:
+  - `routes: Route[]` (required) - Array of [Route objects](#route-object) defining API routes
+  - `info: OpenAPIInfo` (required) - [OpenAPI Info Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#infoObject)
+  - `servers: OpenAPIServer[]` (optional) - Array of [OpenAPI Server Objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#server-object)
+  - `externalDocs: OpenAPIExternalDocs` (optional) - [OpenAPI External Documentation Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#externalDocumentationObject)
+  - `securitySchemes: OpenAPISecuritySchemes` (optional) - Map of [OpenAPI Security Scheme Objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#security-scheme-object)
+  - `security: OpenAPISecurityRequirement` (optional) - Array of [OpenAPI Security Requirement Objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#securityRequirementObject)
+  - `swaggerEndpoint: string` (optional) - An endpoint to serve the OpenAPI spec, default: 'swagger.json'
+
+Example:
 
 ```typescript
 const apiHandler = new OpenAPIHandler({
-	routes,
-	swaggerEndpoint: '/swagger.json',
+  routes,
   info: {
-		title: 'Example CRUD Pet API',
-		description: 'Example CRUD API to demonstrate auto-generated openapi docs with Joi',
-		version: '1.0.0',
-		termsOfService: 'https://github.com/anttiviljami/serverless-openapi-joi',
-		license: {
-			name: 'MIT',
-			url: 'https://github.com/anttiviljami/serverless-openapi-joi/blob/master/LICENSE',
-		},
-		contact: {
-			name: 'Viljami Kuosmanen',
-			url: 'https://github.com/anttiviljami',
-			email: 'viljami@avoinsorsa.fi',
-		},
-	},
-	externalDocs: {
-		description: 'README',
-		url: 'https://github.com/anttiviljami/serverless-openapi-joi',
-	},
-	servers: [
-		{
-			description: 'local',
-			url: 'http://localhost',
-		},
+    title: 'Example CRUD Pet API',
+    description: 'Example CRUD API to demonstrate auto-generated openapi docs with Joi',
+    version: '1.0.0',
+    termsOfService: 'https://github.com/anttiviljami/serverless-openapi-joi',
+    license: {
+      name: 'MIT',
+      url: 'https://github.com/anttiviljami/serverless-openapi-joi/blob/master/LICENSE',
+    },
+    contact: {
+      name: 'Viljami Kuosmanen',
+      url: 'https://github.com/anttiviljami',
+      email: 'viljami@avoinsorsa.fi',
+    },
+  },
+  servers: [
+    {
+      description: 'local',
+      url: 'http://localhost',
+    },
   ],
+  externalDocs: {
+    description: 'README',
+    url: 'https://github.com/anttiviljami/serverless-openapi-joi',
+  },
   securitySchemes: {
     ApiKey: {
       type: 'apiKey',
@@ -112,62 +175,55 @@ const apiHandler = new OpenAPIHandler({
   security: [
     { ApiKey: [] },
   ],
+  swaggerEndpoint: '/swagger.json',
 });
 ```
 
-### Methods
-
-An instance of `OpenAPIHandler` exposes two public methods:
-
-```typescript
-apiHandler.handler(event: APIGatewayProxyEvent, context?: Context): Promise<HandlerResponse>
-```
+### Method: `handler(event: APIGatewayProxyEvent, context?: Context): Promise<HandlerResponse>`
 
 The `handler` method is an async lambda handler method. It either returns the passed through handler response or throws
-a Boom error.
+a [Boom error](https://github.com/hapijs/boom).
 
-Boom errors should be caught and returned to the client:
+- `event: APIGatewayProxyEvent` (required) - [API Gateway Lambda-Proxy Event](https://serverless.com/framework/docs/providers/aws/events/apigateway/#example-lambda-proxy-event-default) object
+- `context: Context` (optional) - API Gateway Lambda-Proxy Context object
+
+Errors thrown by the handler should be caught and returned to the client. Boom errors are nicely formatted as JSON.
+Example implementation of a Serverless handler using `OpenAPIHandler.handler()`:
 
 ```typescript
+import OpenAPIHandler from 'serverless-openapi-joi/handler';
 import Boom from 'boom';
 export async function handler(event) {
-	return apiHandler.handler(event)
-		.catch((err) => {
-			let boom;
-			if (err.isBoom) {
-				boom = err.output;
-			} else {
-				console.error(err);
-				boom = Boom.badImplementation('Internal API error').output;
-			}
-			return {
-				statusCode: boom.statusCode,
-				body: JSON.stringify(boom.payload),
-			};
-		});
+  const apiHandler = new OpenAPIHandler({/* opts here */});
+  return apiHandler.handler(event)
+    .catch((err) => {
+      let boom;
+      if (err.isBoom) {
+        boom = err.output;
+      } else {
+        console.error(err);
+        boom = Boom.badImplementation('Internal API error').output;
+      }
+      return {
+        statusCode: boom.statusCode,
+        body: JSON.stringify(boom.payload),
+      };
+    });
 };
 ```
 
-```typescript
-apiHandler.getSpecification(): OpenAPISPecification
-```
+### Method: `getSpecification()`
+
 The `getSpecification` method is an alias of `apiHandler.openapi.getSpecification()`
 
-### Properties
+### Property: `openapi: OpenApiBuilder`
 
-Instances of `OpenAPIHandler` also expose public properties:
+`openapi` is a reference to a child instance of [`OpenAPIBuilder`](#class-openapibuilder).
 
-```typescript
-apiHandler.openapi: OpenApiBuilder
-```
+### Property: `swaggerEndpoint: string`
 
-`openapi` is a reference to a child instance of `OpenAPIBuilder`.
+`swaggerEndpoint` is the endpoint where the OpenAPI specification is served as application/json.
 
-```typescript
-apiHandler.swaggerEndpoint: string
-```
-
-`swaggerEndpoint` is the public endpoint where the OpenAPI specification is served as application/json
 
 ## Class: OpenAPIBuilder
 
@@ -175,10 +231,24 @@ The `OpenAPIBuilder` class builds the OpenAPI specification from meta and route 
 when requiring `serverless-openapi-joi/openapi`.
 
 ```typescript
-import OpenAPIBuilder from 'serverless-openapi-joi/openapi';
+import OpenAPIBuilder from 'serverless-openapi-joi/openapi'; // ES6 syntax
+// or
+const OpenAPIBuilder = require('serverless-openapi-joi/openapi').default; // CommonJS syntax
 ```
 
-### Constructor
+### Constructor: `new OpenAPIBuilder(opts: OpenAPIBuilderOpts)`
+
+Creates a new `OpenAPIBuilder` instance using the options provided.
+
+- `opts: OpenAPIBuilderOpts` - Constructor options:
+  - `routes: Route[]` (required) - Array of [Route objects](#route-object) defining API routes
+  - `info: OpenAPIInfo` (required) - [OpenAPI Info Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#infoObject)
+  - `servers: OpenAPIServer[]` (optional) - Array of [OpenAPI Server Objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#server-object)
+  - `externalDocs: OpenAPIExternalDocs` (optional) - [OpenAPI External Documentation Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#externalDocumentationObject)
+  - `securitySchemes: OpenAPISecuritySchemes` (optional) - Map of [OpenAPI Security Scheme Objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#security-scheme-object)
+  - `security: OpenAPISecurityRequirement` (optional) - Array of [OpenAPI Security Requirement Objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#securityRequirementObject)
+
+Example:
 
 ```typescript
 const apiBuilder = new OpenAPIBuilder({
@@ -198,80 +268,29 @@ const apiBuilder = new OpenAPIBuilder({
       email: 'viljami@avoinsorsa.fi',
     },
   },
-  externalDocs: {
-    description: 'README',
-    url: 'https://github.com/anttiviljami/serverless-openapi-joi',
-  },
   servers: [
     {
       description: 'local',
       url: 'http://localhost',
     },
   ],
+  externalDocs: {
+    description: 'README',
+    url: 'https://github.com/anttiviljami/serverless-openapi-joi',
+  },
+  securitySchemes: {
+    ApiKey: {
+      type: 'apiKey',
+      name: 'x-api-key',
+      in: 'header',
+    },
+  },
+  security: [
+    { ApiKey: [] },
+  ],
 });
 ```
 
-The constructor method is otherwise the same as with `OpenAPIHandler`, only missing the swaggerEndpoint option.
+### Method: `getSpecification()`
 
-### Methods
-
-An instance of `OpenAPIBuilder` exposes only one public method
-
-```typescript
-apiBuilder.getSpecification(): OpenAPISPecification
-```
 The `getSpecification` method returns the openapi specification as an object
-
-### Properties
-
-Instances of `OpenAPIHandler` expose the following public properties:
-
-```typescript
-apiBuilder.info: OpenAPIInfo
-```
-
-Mutable reference to the info object passed through the constructor and used as is in the Open API spec.
-
-```typescript
-export interface OpenAPIInfo {
-  title: string;
-  description?: string;
-  version: string;
-  termsOfService?: string;
-  license?: {
-    name: string;
-    url?: string;
-  };
-  contact?: {
-    name?: string;
-    url?: string;
-    email?: string;
-  };
-}
-```
-
-@TODO: 
-- [ ] `public OPENAPI_VERSION: string = '3.0.0.';`
-- [ ] `public routes: Route[];`
-- [x] `public info: OpenAPIInfo;`
-- [ ] `public servers: OpenAPIServer[];`
-- [ ] `public externalDocs: OpenAPIExternalDocs;`
-- [ ] `public securitySchemes: OpenAPISecuritySchemes;`
-- [ ] `public security: OpenAPISecurityRequirement[];`
-
-## Class: OpenApiJoiPlugin
-
-The `OpenApiJoiPlugin` is a Serverless plugin class. It is exported as a module when requiring 'serverless-openapi-joi'.
-
-```yaml
-plugins:
-  - serverless-openapi-joi
-```
-
-The plugin part of serverless-openapi-joi currently doesn't do much.
-
-Some ideas for the plugin:
-- Parse routes directly from `serverless.yml` function http events to avoid duplicate endpoint definitions
-- Add `serverless openapi:generate` command which prints the openapi definitions either as json or yaml
-- Add `serverless openapi:swaggeriui` command which generates a static Swagger UI documentation site
-- Add option to deploy the Swagger UI site as an S3 website

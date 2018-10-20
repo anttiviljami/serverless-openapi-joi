@@ -42,8 +42,22 @@ export interface OpenAPISecurityRequirement {
 export interface OpenAPISecuritySchemes {
   [scheme: string]: {
     type: string;
-    name: string;
-    in: string;
+    description?: string;
+    name?: string;
+    in?: string;
+    scheme?: string;
+    bearerFormat?: string;
+    flows?: {
+      [flow: string]: {
+        authorizationUrl?: string;
+        tokenUrl?: string;
+        refreshUrl?: string;
+        scopes?: {
+          [scope: string]: string;
+        }
+      },
+    }
+    openIdConnectUrl?: string;
   };
 }
 
