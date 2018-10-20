@@ -8,14 +8,6 @@ export interface HandlerEvent extends APIGatewayProxyEvent {
   payload: any;
 }
 
-export interface HandlerContext {
-  raw: boolean; // true = pass raw return value to body, false = convert return value to json string
-  statusCode: number;
-  headers: {
-    [header: string]: string;
-  };
-}
-
 export interface HandlerResponse {
   statusCode?: number;
   body?: string | Buffer;
