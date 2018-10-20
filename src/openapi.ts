@@ -54,9 +54,9 @@ export interface OpenAPISecuritySchemes {
         refreshUrl?: string;
         scopes?: {
           [scope: string]: string;
-        }
-      },
-    }
+        };
+      };
+    };
     openIdConnectUrl?: string;
   };
 }
@@ -70,18 +70,18 @@ export interface OpenAPIComponents {
 export interface OpenAPIPaths {
   [path: string]: {
     [method: string]: {
-      operationId: string,
-      summary?: string,
-      description?: string,
-      tags: string[],
+      operationId: string;
+      summary?: string;
+      description?: string;
+      tags: string[];
       responses: {
         [responseCode: string]: {
           description: string;
           content?: any;
         };
       };
-      parameters: any[],
-      requestBody: any,
+      parameters: any[];
+      requestBody: any;
     };
   };
 }
@@ -123,10 +123,12 @@ export default class OpenAPIBuilder {
     };
 
     // default to a list of all securitySchemes given
-    this.security = opts.security || _.chain(this.securitySchemes)
-      .keys()
-      .map((scheme: string) => ({ [scheme]: [] }))
-      .value();
+    this.security =
+      opts.security ||
+      _.chain(this.securitySchemes)
+        .keys()
+        .map((scheme: string) => ({ [scheme]: [] }))
+        .value();
   }
 
   public getDefinition() {
@@ -155,28 +157,34 @@ export default class OpenAPIBuilder {
       .value();
 
     // build the components object
-    const components: OpenAPIComponents = _.omitBy({
-      schemas: _.chain(this.schemas)
-        .keyBy('ref')
-        .mapValues((def) => _.omit(def, 'ref'))
-        .value(),
-      requestBodies: _.chain(this.requestBodies)
-        .keyBy('ref')
-        .mapValues((def) => _.omit(def, 'ref'))
-        .value(),
-      securitySchemes: this.securitySchemes,
-    }, _.isNil);
+    const components: OpenAPIComponents = _.omitBy(
+      {
+        schemas: _.chain(this.schemas)
+          .keyBy('ref')
+          .mapValues((def) => _.omit(def, 'ref'))
+          .value(),
+        requestBodies: _.chain(this.requestBodies)
+          .keyBy('ref')
+          .mapValues((def) => _.omit(def, 'ref'))
+          .value(),
+        securitySchemes: this.securitySchemes,
+      },
+      _.isNil,
+    );
 
-    return _.omitBy({
-      openapi: this.OPENAPI_VERSION,
-      info: this.info,
-      externalDocs: this.externalDocs,
-      servers: this.servers,
-      security: this.security,
-      tags,
-      paths,
-      components,
-    }, _.isNil);
+    return _.omitBy(
+      {
+        openapi: this.OPENAPI_VERSION,
+        info: this.info,
+        externalDocs: this.externalDocs,
+        servers: this.servers,
+        security: this.security,
+        tags,
+        paths,
+        components,
+      },
+      _.isNil,
+    );
   }
 
   // adds definitions from path validation to schemas array and returns the path definition itself

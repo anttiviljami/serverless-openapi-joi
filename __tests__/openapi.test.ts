@@ -54,9 +54,7 @@ describe('OpenAPI', () => {
           in: 'header',
         },
       },
-      security: [
-        { ApiKey: [] },
-      ],
+      security: [{ ApiKey: [] }],
       routes,
     });
     const definition = await openapi.getDefinition();

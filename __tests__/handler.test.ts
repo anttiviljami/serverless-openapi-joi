@@ -45,7 +45,7 @@ describe('Handler', () => {
   });
 
   test('handler passes parsed payload as object', async () => {
-    const payload = { name: 'test '};
+    const payload = { name: 'test' };
     const event = {
       httpMethod: 'POST',
       path: '/pets',
