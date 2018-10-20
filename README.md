@@ -15,25 +15,27 @@ See full example project boilerplate here: [anttiviljami/serverless-openapi-joi-
 
 As developers, we are lazy when it comes to writing documentation.
 
-Even with nice modern tools like the OpenAPI standard (previously known as Swagger) that allow us to auto-generate
-API docs and clients from definition files, those files tend to be tideous to write and out-of-date.
+Even with nice modern tools like the OpenAPI standard (previously known as Swagger) which allows us to auto-generate
+API docs and clients from formatted specification documents, they are tideous to write and thus often out-of-date.
 
 The best way to make sure API documentation stays up-to-date is to generate it from API code itself and actively use the
-generated API definition in our development workflow.
+generated API definition in our development workflows.
 
-With **serverless-openapi-joi**, OpenAPI specification is generated as a by-product of defining Joi validation rules to
-our API endpoints. As a bonus, we get nice machine- and human-readable [Boomified](https://github.com/hapijs/boom)
+With **serverless-openapi-joi**, OpenAPI specification is generated as a by-product of defining Joi input validation
+rules to our API endpoints. As a bonus, we get nice machine- and human-readable [Boomified](https://github.com/hapijs/boom)
 validation errors.
 
-Heavily inspired by [hapi-swagger](https://github.com/glennjones/hapi-swagger)
+Inspired by [hapi-swagger](https://github.com/glennjones/hapi-swagger)
 
 ## Example
+
+Install the plugin:
 
 ```
 npm install --save serverless-openapi-joi
 ```
 
-In serverless.yml:
+In serverless.yml, add the plugin and define your api endpoints:
 
 ```yaml
 plugins:
@@ -69,7 +71,7 @@ functions:
           private: true
 ```
 
-In Serverless handler:
+In the handler:
 
 ```typescript
 import OpenAPIHandler from 'serverless-openapi-joi/handler'; // ES6 syntax
@@ -126,7 +128,7 @@ const validation = {
 };
 ```
 
-Routes define API operations using validation rules for request body, path parameters, query parameters and headers:
+Routes define API operations using validation rules ([see docs](https://github.com/anttiviljami/serverless-openapi-joi/blob/master/DOCS.md#route-object)): 
 
 ```typescript
 const routes = [
@@ -216,10 +218,12 @@ const routes = [
 ];
 ```
 
-OpenAPI v3 docs are automatically generated for API and served at `/swagger.json`.
+The OpenAPI specification for your API gets automatically generated and served at `/swagger.json`! 
 
-These can be viewed using tools like Swagger UI
+You can also access the specification object anywhere programmatically using the
+[`getSpecification()` method](https://github.com/anttiviljami/serverless-openapi-joi/blob/master/DOCS.md#method-getspecification-1).
 
+OpenAPI specifications can be easily viewed using tools like Swagger UI:
 ![Swagger UI docs](https://raw.githubusercontent.com/anttiviljami/serverless-openapi-joi/master/swaggerui.png)
 
 ## Documentation

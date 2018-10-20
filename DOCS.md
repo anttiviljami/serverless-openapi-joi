@@ -215,7 +215,7 @@ export async function handler(event) {
 
 ### Method: `getSpecification()`
 
-The `getSpecification` method is an alias of `apiHandler.openapi.getSpecification()`
+The `getSpecification` method is an alias of [`apiHandler.openapi.getSpecification()`](#method-getspecification-1)
 
 ### Property: `openapi: OpenApiBuilder`
 
