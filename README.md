@@ -41,7 +41,7 @@ plugins:
 
 functions:
   api:
-    handler: handler.api
+    handler: index.handler
     events:
       - http:
           path: swagger.json
