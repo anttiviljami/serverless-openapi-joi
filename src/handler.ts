@@ -5,7 +5,13 @@ import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import OpenAPIBuilder, { OpenAPITag, OpenAPISecurityRequirement, OpenAPIBuilderOpts } from './openapi';
 
 export interface HandlerEvent extends APIGatewayProxyEvent {
-  payload: any;
+  payload?: any;
+  command?: {
+    name: string;
+    options?: {
+      [opt: string]: string;
+    }
+  };
 }
 
 export interface HandlerResponse {
@@ -64,8 +70,19 @@ export default class OpenAPIHandler {
   }
 
   // lambda handler method
-  public async handler(event: Partial<APIGatewayProxyEvent>, context?: Context): Promise<HandlerResponse> {
-    const { path } = event;
+  public async handler(event: Partial<HandlerEvent>, context?: Context): Promise<HandlerResponse> {
+    const { path, command } = event;
+
+    // special event from serverless cli
+    if (command && command.name.startsWith('openapi')) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify(this.getDefinition()),
+        headers: {
+          'content-type': 'application/json',
+        },
+      };
+    }
 
     // special endpoint to serve swagger.json
     if (this.swaggerEndpoint && path.match(new RegExp(`^${this.swaggerEndpoint}$`))) {
@@ -83,7 +100,7 @@ export default class OpenAPIHandler {
   }
 
   // dank version of hapi's routing + joi validation
-  private async route(event: Partial<APIGatewayProxyEvent>, context?: Context): Promise<HandlerResponse> {
+  private async route(event: Partial<HandlerEvent>, context?: Context): Promise<HandlerResponse> {
     const { httpMethod, path, pathParameters, queryStringParameters, body, headers } = event;
 
     // sort routes by "specificity" i.e. just use path length 🙈

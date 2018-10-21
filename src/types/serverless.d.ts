@@ -1,14 +1,13 @@
 declare namespace Serverless {
   interface Options {
-    stage: string | null;
-    region: string | null;
-    noDeploy?: boolean;
+    function: string;
   }
 
   interface Commands {
     [command: string]: {
+      usage: string;
       lifecycleEvents: string[];
-      options: {
+      options?: {
         [option: string]: {
           usage: string;
           required?: boolean;
@@ -20,6 +19,19 @@ declare namespace Serverless {
 
   interface Hooks {
     [hook: string]: () => void;
+  }
+
+  interface Function {
+    handler: string;
+    events: Array<{
+      http?: {
+        path: string;
+        method: string;
+        cors?: boolean;
+        private?: boolean;
+        timeout?: number;
+      };
+    }>
   }
 }
 
@@ -37,9 +49,7 @@ declare interface Serverless {
   };
 
   service: {
-    getServiceName(): string;
-    getAllFunctions(): string[];
-    
+    getFunction(functionName: string): Serverless.Function;
     custom: {
       openapi: any;
     };

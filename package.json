@@ -9,8 +9,8 @@
     "url": "https://github.com/anttiviljami/serverless-openapi-joi/issues"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/anttiviljami/serverless-openapi-joi.git"
+    "type": "git",
+    "url": "https://github.com/anttiviljami/serverless-openapi-joi.git"
   },
   "main": "index.js",
   "types": "index.d.ts",
