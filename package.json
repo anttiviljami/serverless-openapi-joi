@@ -9,8 +9,8 @@
     "url": "https://github.com/anttiviljami/serverless-openapi-joi/issues"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/anttiviljami/serverless-openapi-joi.git"
+    "type": "git",
+    "url": "https://github.com/anttiviljami/serverless-openapi-joi.git"
   },
   "main": "index.js",
   "types": "index.d.ts",
@@ -25,16 +25,16 @@
     "joi"
   ],
   "dependencies": {
-    "boom": "^7.2.0",
-    "joi": "^14.0.0",
+    "@hapi/boom": "^7.4.2",
+    "@hapi/joi": "^15.0.3",
     "joi-to-json-schema": "^3.4.0",
     "lodash": "^4.17.11"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.13",
-    "@types/boom": "^7.2.0",
+    "@types/hapi__boom": "^7.4.0",
+    "@types/hapi__joi": "^15.0.1",
     "@types/jest": "^23.3.5",
-    "@types/joi": "^13.6.1",
     "@types/lodash": "^4.14.117",
     "@types/node": "^10.12.0",
     "jest": "^23.6.0",

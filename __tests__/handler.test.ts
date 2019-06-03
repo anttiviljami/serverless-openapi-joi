@@ -1,4 +1,4 @@
-import Boom from 'boom';
+import Boom from '@hapi/boom';
 import OpenAPIHandler from '../src/handler';
 import { routes, dummyHandler } from './util/routes';
 import { extend, ExtendedMatchers } from './util/jest-openapi';

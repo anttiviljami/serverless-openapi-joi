@@ -40,7 +40,7 @@ for this endpoint. Defaults to the handler function name
 Example Route object in array with validations:
 
 ```typescript
-import Joi from 'joi';
+import Joi from '@hapi/joi';
 import { Route } from 'serverless-openapi-joi/handler';
 
 const routes = [
@@ -192,7 +192,7 @@ Example implementation of a Serverless handler using `OpenAPIHandler.handler()`:
 
 ```typescript
 import OpenAPIHandler from 'serverless-openapi-joi/handler';
-import Boom from 'boom';
+import Boom from '@hapi/boom';
 
 export async function handler(event) {
   const apiHandler = new OpenAPIHandler({/* opts here */});
