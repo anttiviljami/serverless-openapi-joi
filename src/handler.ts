@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import Boom from 'boom';
-import Joi, { SchemaLike } from 'joi';
+import Boom from '@hapi/boom';
+import Joi, { SchemaLike } from '@hapi/joi';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import OpenAPIBuilder, { OpenAPITag, OpenAPISecurityRequirement, OpenAPIBuilderOpts } from './openapi';
 

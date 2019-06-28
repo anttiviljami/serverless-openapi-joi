@@ -101,7 +101,7 @@ export async function handler(event) {
 Validation models are defined using Joi:
 
 ```typescript
-import Joi from 'joi';
+import Joi from '@hapi/joi';
 
 const validation = {
   petId: Joi.number().integer()

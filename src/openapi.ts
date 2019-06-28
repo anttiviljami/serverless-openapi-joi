@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import Joi from 'joi';
+import Joi from '@hapi/joi';
 import joi2json from 'joi-to-json-schema';
 import { Route } from './handler';
 
@@ -127,7 +127,7 @@ export default class OpenAPIBuilder {
       opts.security ||
       _.chain(this.securitySchemes)
         .keys()
-        .map((scheme: string) => ({ [scheme]: [] }))
+        .map((scheme) => ({ [scheme]: [] }))
         .value();
   }
 
