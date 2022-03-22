@@ -96,7 +96,7 @@ export interface OpenAPIBuilderOpts {
 }
 
 export default class OpenAPIBuilder {
-  public OPENAPI_VERSION: string = '3.0.0.';
+  public OPENAPI_VERSION: string = '3.0.0';
   public routes: Route[];
   public info: OpenAPIInfo;
   public servers: OpenAPIServer[];
