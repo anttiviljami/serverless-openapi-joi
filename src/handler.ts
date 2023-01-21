@@ -98,7 +98,7 @@ export default class OpenAPIHandler {
       if (route.method !== httpMethod) {
         return false;
       }
-      const pathPattern = route.path.replace(/\{.*\}/g, '(.+)').replace(/\//g, '\\/');
+      const pathPattern = route.path.replace(/\{[^}]+}/g, '(.+)').replace(/\//g, '\\/');
       return path.match(new RegExp(`^${pathPattern}`, 'g'));
     });
 
