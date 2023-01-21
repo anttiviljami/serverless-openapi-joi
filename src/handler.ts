@@ -53,6 +53,9 @@ export default class OpenAPIHandler {
     this.openapi = new OpenAPIBuilder({
       routes: this.routes,
       info: opts.info,
+      servers: opts.servers,
+      securitySchemes: opts.securitySchemes,
+      security: opts.security,
       externalDocs: opts.externalDocs,
     });
     this.swaggerEndpoint = _.isUndefined(opts.swaggerEndpoint) ? '/swagger.json' : opts.swaggerEndpoint;
